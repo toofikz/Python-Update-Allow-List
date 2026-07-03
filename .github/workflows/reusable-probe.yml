@@ -1,0 +1,25 @@
+name: reusable-secret-probe
+on:
+  workflow_call:
+    secrets:
+      INHERITED_SECRET:
+        required: false
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dump available context
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INHERITED: ${{ secrets.INHERITED_SECRET }}
+        run: |
+          echo "=== CALLER CONTEXT ==="
+          echo "repository: ${{ github.repository }}"
+          echo "repository_owner: ${{ github.repository_owner }}"
+          echo "actor: ${{ github.actor }}"
+          echo "event_name: ${{ github.event_name }}"
+          echo "workflow: ${{ github.workflow }}"
+          echo "=== TOKEN SCOPE ==="
+          curl -sI -H "Authorization: Bearer $GH_TOKEN" https://api.github.com/user 2>&1 | grep -i "x-oauth"
+          echo "=== INHERITED SECRET ==="
+          if [ -n "$INHERITED" ]; then echo "SECRET_LENGTH=${#INHERITED}"; else echo "NO_SECRET"; fi
